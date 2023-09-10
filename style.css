@@ -1,0 +1,32 @@
+/*
+Theme Name: Github Scrapper
+Author: developer
+Description: Custom theme for GitHub users scrapper task.
+Version: 1.0
+*/
+
+
+.loader {
+    border: 2px solid #6c6c6c;
+    border-radius: 50%;
+    border-top: 2px solid #fff;
+    width: 20px;
+    height: 20px;
+    -webkit-animation: spin 2s linear infinite;
+    animation: spin 2s linear infinite;
+    display: block;
+}
+  
+@-webkit-keyframes spin {
+    0% { -webkit-transform: rotate(0deg); }
+    100% { -webkit-transform: rotate(360deg); }
+}
+  
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hidden{
+    display: none;
+}
