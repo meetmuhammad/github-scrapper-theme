@@ -3,7 +3,7 @@
 /**
  * Enqueue custom scripts and styles for the theme.
  */
-function enqueueCustomScript() 
+function enqueueCustomScript()
 {
     wp_enqueue_script('tailwind-script', 'https://cdn.tailwindcss.com', [], null, false);
     wp_enqueue_style('scrapper-styles', get_template_directory_uri() . '/style.css', [], '1.0');
@@ -14,25 +14,31 @@ function enqueueCustomScript()
 }
 add_action('wp_enqueue_scripts', 'enqueueCustomScript');
 
-// Ensure the Bearer Token is defined.
-if (!defined('BEARER_TOKEN')) {
-    define('BEARER_TOKEN', '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'); 
+
+if( !defined('BEARER_TOKEN') ){
+    define('BEARER_TOKEN', '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');
 }
 
 /**
  * AJAX action to scrape GitHub users.
  */
-function githubScraper() 
+function githubScraper()
 {
     // Sanitize and validate the input.
-    $user_qty = isset($_POST['user_qty']) ? sanitize_text_field($_POST['user_qty']) : '';
+    $ajax_params = isset($_POST['data']) ? $_POST['data'] : array();
+
+    $user_qty = $ajax_params['user_qty'];
 
     // Fetch GitHub users.
-    $users = fetchGithubUsers($user_qty);
+    $api_response_data = fetchGithubUsers($user_qty);
+    check_for_warnings($api_response_data);
 
-    foreach ($users as $user) {
+    $users_list = $api_response_data->items;
+
+    foreach ($users_list as $user) {
         // Get user data for each user.
         $user_details = getUserData($user->url);
+        check_for_warnings($user_details);
 
         // Include the user card template and pass data.
         get_template_part("assets/templates/github-user-card", null, [
@@ -56,19 +62,21 @@ add_action('wp_ajax_nopriv_github_scraper', 'githubScraper');  // Hook for non-l
  * Fetch GitHub users.
  *
  * @param int $user_qty Number of users to retrieve.
- * 
+ *
  * @return array|mixed Decoded array of user data or error message.
  */
-function fetchGithubUsers($user_qty) 
+function fetchGithubUsers($user_qty)
 {
-    $api_url = "https://api.github.com/users?since=0&per_page=$user_qty";
-    
-    $response = wp_remote_get($api_url, [
-        'headers' => [
-            'User-Agent' => 'YourApp',
-            'Authorization' => 'Bearer ' . BEARER_TOKEN,
-        ],
-    ]);
+    $api_url = "https://api.github.com/search/users?q=type%3Auser&per_page=$user_qty";
+
+    $headers = array(
+        'headers' => array(
+            'User-Agent' => 'GitHubUserList/1.0',
+            'Authorization' => 'Bearer ' . BEARER_TOKEN
+        )
+    );
+
+    $response = wp_remote_get($api_url, $headers);
 
     if (is_wp_error($response)) {
         return "Error: " . $response->get_error_message();
@@ -82,17 +90,19 @@ function fetchGithubUsers($user_qty)
  * Retrieve specific user data from GitHub API using a given URL.
  *
  * @param string $url API endpoint URL.
- * 
+ *
  * @return object|mixed Decoded object of user data or error message.
  */
-function getUserData($url) 
+function getUserData($url)
 {
-    $response = wp_remote_get($url, [
-        'headers' => [
-            'User-Agent' => 'YourApp',
-            'Authorization' => 'Bearer ' . BEARER_TOKEN,
-        ],
-    ]);
+    $headers = array(
+        'headers' => array(
+            'User-Agent' => 'GitHubUserList/1.0',
+            'Authorization' => 'Bearer ' . BEARER_TOKEN
+        )
+    );
+
+    $response = wp_remote_get($url, $headers);
 
     if (is_wp_error($response)) {
         return "Error: " . $response->get_error_message();
@@ -109,8 +119,14 @@ function getUserData($url)
  * 
  * @return int The ID of the last scrapped user.
  */
-function getLastScrappedId(array $scrapped_data) 
+function check_for_warnings($response)
 {
-    end($scrapped_data);
-    return current($scrapped_data)->id;
+    if (isset($response->message)) {
+        echo '<div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">';
+        echo $response->message;
+        echo '</div>';
+        exit;
+    }
 }
+
+

@@ -7,6 +7,7 @@ jQuery(document).ready(function ($) {
     const scrapBtnLoader = $('#scrape_loader'); // Loader element
     const scrapperMessage = $('#scrapper_message'); // Message element
     const userQtyField = $('#users_qty'); // User quantity input field
+    const usersRenderDiv = $('#github_users_grid'); // Element to render scraped users
 
     // Set a default value for user quantity
     userQtyField.val(8);
@@ -31,21 +32,21 @@ jQuery(document).ready(function ($) {
             type: 'POST',
             data: {
                 action: 'github_scraper',
-                user_qty: userQty
+                data: { user_qty: userQty },
             },
             beforeSend: function () {
                 showOnScreen(scrapBtnLoader);
-                $('#github_users_grid').html(""); // Clearing any previous grid
+                usersRenderDiv.html(""); // Clearing any previous grid
                 showOnScreen(scrapperMessage);
                 scrapperMessage.html("🕰️ Please wait while we scrape GitHub users for you");
             },
             success: function (res) {
-                $('#github_users_grid').html(res);
+                usersRenderDiv.html(res);
             },
             complete: function () {
                 hideFromScreen(scrapperMessage);
                 hideFromScreen(scrapBtnLoader);
-            }
+            },
         });
     };
 
