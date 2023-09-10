@@ -16,7 +16,7 @@ add_action('wp_enqueue_scripts', 'enqueueCustomScript');
 
 // Ensure the Bearer Token is defined.
 if (!defined('BEARER_TOKEN')) {
-    define('BEARER_TOKEN', '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');
+    define('BEARER_TOKEN', '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');
 }
 
 /**
